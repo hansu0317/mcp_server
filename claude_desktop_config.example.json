@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "crm-server": {
+      "command": "python3",
+      "args": ["/절대경로/crm-text-to-sql/mcp_server/server.py"],
+      "env": {
+        "DATABASE_URL": "postgresql://crm_user:crm_pass@localhost:5432/crm_db",
+        "TAVILY_API_KEY": "tvly-your-key-here",
+        "MAX_QUERY_ROWS": "100"
+      }
+    }
+  }
+}

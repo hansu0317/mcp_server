@@ -1,6 +1,7 @@
-# 환경 변수 — 절대 커밋 금지
+# 환경 변수 / 실제 키 포함 파일 — 절대 커밋 금지
 .env
 *.env
+claude_desktop_config.json
 
 # Python
 __pycache__/
