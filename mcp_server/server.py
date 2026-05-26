@@ -190,7 +190,7 @@ async def handle_tool(name: str, arguments: dict) -> dict:
         api_key = os.environ.get("TAVILY_API_KEY", "")
         if not api_key:
             return {"content": [{"type": "text", "text": "TAVILY_API_KEY가 설정되지 않았습니다."}], "isError": True}
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=15.0, transport=httpx.AsyncHTTPTransport(local_address="0.0.0.0")) as client:
             resp = await client.post(
                 "https://api.tavily.com/search",
                 json={"api_key": api_key, "query": query, "max_results": max_results},
