@@ -1,6 +1,14 @@
-# MCP Server 의존성
-# Claude Desktop이 LLM을 담당하므로 anthropic SDK 불필요
-
+# MCP Server
 asyncpg==0.30.0        # PostgreSQL 비동기 드라이버
 httpx==0.28.1          # Tavily 웹검색 HTTP 호출
 python-dotenv==1.0.1   # .env 파일 로딩
+
+# PaaS API (FastAPI + SSE transport)
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+
+# TextToSQL (LLM)
+anthropic==0.40.0
+
+# 데이터 검증
+pydantic==2.10.3
