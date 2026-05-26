@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM AI 어시스턴트</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e0e0e0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 16px 24px;
+      background: #1a1d2e;
+      border-bottom: 1px solid #2a2d3e;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header h1 { font-size: 18px; font-weight: 600; }
+    header span { font-size: 12px; color: #6b7280; }
+    .badge {
+      background: #1e3a5f;
+      color: #60a5fa;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 9999px;
+    }
+
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .msg {
+      max-width: 780px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .msg.user { align-self: flex-end; align-items: flex-end; }
+    .msg.assistant { align-self: flex-start; }
+
+    .bubble {
+      padding: 12px 16px;
+      border-radius: 12px;
+      line-height: 1.6;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+
+    .msg.user .bubble { background: #1e3a5f; color: #e0f0ff; }
+    .msg.assistant .bubble { background: #1a1d2e; border: 1px solid #2a2d3e; }
+
+    .sql-block {
+      background: #0d1117;
+      border: 1px solid #2a2d3e;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #7dd3fc;
+      overflow-x: auto;
+    }
+
+    .sql-label {
+      font-size: 11px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .role-label {
+      font-size: 11px;
+      color: #6b7280;
+      padding: 0 4px;
+    }
+
+    #input-area {
+      padding: 16px 24px;
+      background: #1a1d2e;
+      border-top: 1px solid #2a2d3e;
+      display: flex;
+      gap: 12px;
+    }
+
+    #question {
+      flex: 1;
+      background: #0f1117;
+      border: 1px solid #2a2d3e;
+      border-radius: 10px;
+      color: #e0e0e0;
+      padding: 12px 16px;
+      font-size: 14px;
+      resize: none;
+      height: 48px;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    #question:focus { border-color: #3b82f6; }
+
+    #send {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 0 20px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .2s;
+    }
+
+    #send:hover { background: #1d4ed8; }
+    #send:disabled { background: #374151; cursor: not-allowed; }
+
+    .examples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0 24px 12px;
+    }
+
+    .example-btn {
+      background: #1a1d2e;
+      border: 1px solid #2a2d3e;
+      color: #9ca3af;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .example-btn:hover { border-color: #3b82f6; color: #60a5fa; }
+
+    .loading { color: #6b7280; font-style: italic; font-size: 13px; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2a2d3e; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>CRM AI 어시스턴트</h1>
+  <span class="badge">MCP + Claude</span>
+  <span>PostgreSQL 연결됨</span>
+</header>
+
+<div id="chat">
+  <div class="msg assistant">
+    <span class="role-label">AI</span>
+    <div class="bubble">안녕하세요! CRM 데이터에 대해 자연어로 질문해주세요.<br>예시 버튼을 눌러 시작할 수 있습니다.</div>
+  </div>
+</div>
+
+<div class="examples">
+  <button class="example-btn" onclick="ask('이번 달 성사된 딜의 총 금액은?')">이번 달 성사된 딜 총 금액</button>
+  <button class="example-btn" onclick="ask('고객사별 딜 수와 총 금액을 보여줘')">고객사별 딜 현황</button>
+  <button class="example-btn" onclick="ask('최근 활동이 없는 고객사는?')">활동 없는 고객사</button>
+  <button class="example-btn" onclick="ask('stage별 딜 현황을 요약해줘')">Stage별 딜 현황</button>
+</div>
+
+<div id="input-area">
+  <textarea id="question" placeholder="질문을 입력하세요... (Enter로 전송)" rows="1"></textarea>
+  <button id="send" onclick="sendQuery()">전송</button>
+</div>
+
+<script>
+  const API_KEY = 'demo-key-001';
+
+  function ask(text) {
+    document.getElementById('question').value = text;
+    sendQuery();
+  }
+
+  function addMessage(role, content, sql) {
+    const chat = document.getElementById('chat');
+    const msg = document.createElement('div');
+    msg.className = `msg ${role}`;
+
+    const label = document.createElement('span');
+    label.className = 'role-label';
+    label.textContent = role === 'user' ? '나' : 'AI';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = content;
+
+    msg.appendChild(label);
+    msg.appendChild(bubble);
+
+    if (sql) {
+      const sqlLabel = document.createElement('div');
+      sqlLabel.className = 'sql-label';
+      sqlLabel.textContent = '실행된 SQL';
+      const sqlBlock = document.createElement('div');
+      sqlBlock.className = 'sql-block';
+      sqlBlock.textContent = sql;
+      msg.appendChild(sqlLabel);
+      msg.appendChild(sqlBlock);
+    }
+
+    chat.appendChild(msg);
+    chat.scrollTop = chat.scrollHeight;
+    return msg;
+  }
+
+  async function sendQuery() {
+    const input = document.getElementById('question');
+    const question = input.value.trim();
+    if (!question) return;
+
+    input.value = '';
+    const btn = document.getElementById('send');
+    btn.disabled = true;
+
+    addMessage('user', question);
+
+    const loading = addMessage('assistant', '생각 중...', null);
+    loading.querySelector('.bubble').classList.add('loading');
+
+    try {
+      const res = await fetch('/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${API_KEY}`,
+        },
+        body: JSON.stringify({ question }),
+      });
+
+      const data = await res.json();
+      loading.remove();
+
+      if (res.ok) {
+        addMessage('assistant', data.answer, data.sql);
+      } else {
+        addMessage('assistant', `오류: ${data.detail || '요청 실패'}`, null);
+      }
+    } catch (e) {
+      loading.remove();
+      addMessage('assistant', `네트워크 오류: ${e.message}`, null);
+    }
+
+    btn.disabled = false;
+    input.focus();
+  }
+
+  document.getElementById('question').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendQuery();
+    }
+  });
+</script>
+</body>
+</html>
