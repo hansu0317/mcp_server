@@ -64,9 +64,9 @@ TOOLS = [
 
 class TextToSQLService:
 
-    def __init__(self):
+    def __init__(self, backend=None):
         self.client = anthropic.AsyncAnthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
-        self.backend = PostgresBackend()
+        self.backend = backend or PostgresBackend()
 
     async def _call_tool(self, name: str, args: dict) -> str:
         """Claude가 요청한 툴을 PostgresBackend로 실행."""
