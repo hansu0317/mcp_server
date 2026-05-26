@@ -2,6 +2,8 @@
 .env
 *.env
 claude_desktop_config.json
+.git-credentials
+*credentials*
 
 # Python
 __pycache__/
