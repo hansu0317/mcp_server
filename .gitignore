@@ -1,8 +1,24 @@
+# 환경 변수 — 절대 커밋 금지
 .env
+*.env
+
+# Python
 __pycache__/
 *.pyc
 *.pyo
-.DS_Store
+*.pyd
 *.egg-info/
+
+# 가상환경
 .venv/
 venv/
+env/
+
+# IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# 로그
+*.log

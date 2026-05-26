@@ -1,9 +1,6 @@
-fastapi==0.115.5
-uvicorn[standard]==0.32.1
-groq==0.13.1
-# anthropic==0.40.0  # 최종 테스트 시 주석 해제 (LLM_PROVIDER=claude)
-asyncpg==0.30.0
-pydantic==2.10.3
-pydantic-settings==2.6.1
-python-dotenv==1.0.1
-httpx==0.28.1
+# MCP Server 의존성
+# Claude Desktop이 LLM을 담당하므로 anthropic SDK 불필요
+
+asyncpg==0.30.0        # PostgreSQL 비동기 드라이버
+httpx==0.28.1          # Tavily 웹검색 HTTP 호출
+python-dotenv==1.0.1   # .env 파일 로딩
